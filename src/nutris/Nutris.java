@@ -19,7 +19,10 @@ import Entidades.Horario;
 import Entidades.Paciente;
 import java.time.LocalDate;
 import java.time.Month;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -27,10 +30,18 @@ import java.util.List;
  */
 public class Nutris {
 
-    /**
-     * @param args the command line arguments
-     */
+private static List<Dieta>listNorpp=new ArrayList<>();
+private static List<Dieta>listEstadoTermado=new ArrayList<>();
+private static List<Dieta>listEstadoEnCurso=new ArrayList<>();
+   
     public static void main(String[] args) {
+        
+        
+        
+        
+        
+        
+        
         // TODO code application logic here
 
 //ALTA DE ENTIDADES
@@ -38,7 +49,7 @@ public class Nutris {
 PacienteData pd =new PacienteData(Conexion.getConnection());
 //Paciente p1=new Paciente (1.80,"salala 1987","4612-1866",true,"Carletti","Pedro","33666888","1548889632","carletti@hotmail.com",LocalDate.of(1945, Month.MARCH, 5));
 //Paciente p2=new Paciente (1.60,"andala 87","4633-2266",true,"Perez","Hugo","3355888","1889632","hugo@hotmail.com",LocalDate.of(1978, Month.APRIL, 2));
-////pd.ingresarPaciente(p2);
+//pd.ingresarPaciente(p2);
 ////pd.ingresarPaciente(p1);
 
 DietaData dd=new DietaData(Conexion.getConnection());
@@ -110,6 +121,107 @@ HistorialData hd=new HistorialData(Conexion.getConnection());
         //System.out.println(hd.buscarHistorialPorId(9));
         //System.out.println(hd.historialPorPaciente(39));
         //System.out.println( cd.buscarComidasPorCalorias("3"));
+        
+       // System.out.println(dcd.listarComidasPorDieta(5));
+        
+        //CREACION DE LA LISTA DE DIETAS
+        creacionDeLista();
+        
+        
+//LISTA DE DIETAS EN CURSO
+        dietaEnCurso();
+        //System.out.println("\n");
+        //LISTA DE DIETAS CULMINADAS
+        dietaTerminada();
+        //System.out.println("\n");
+        //PACIENTES QUE NO LLEGARON AL PESO REQUERIDO
+        //pacientesQueNorpp();
+       
+       
+       
+       
+       
+       
+       
+         
+        
     }
     
+    private static void dietaEnCurso(){
+    
+     System.out.println("Los pacientes con dieta en curso son : ");
+       listEstadoEnCurso.forEach(d-> {
+           boolean est=d.isEstado();
+        String dni=d.getPaciente().getDni();
+        String nombre=d.getPaciente().getNombre();
+        String apellido =d.getPaciente().getApellido();
+         DateTimeFormatter formateador = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+       String fechaFormateada =d.getFechaFinal().format(formateador);
+            System.out.println(nombre +" "+apellido+ " "+dni+" terminaria el : "+fechaFormateada );
+            System.out.println("-----------------------------------------------");
+        });
+    
+    
+    }
+    
+    private static void dietaTerminada(){
+    
+    
+    System.out.println("Los pacientes con dieta terminada : ");
+       listEstadoTermado.forEach(d-> {
+           boolean est=d.isEstado();
+        String dni=d.getPaciente().getDni();
+        String nombre=d.getPaciente().getNombre();
+        String apellido =d.getPaciente().getApellido();
+       DateTimeFormatter formateador = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+       String fechaFormateada =d.getFechaFinal().format(formateador);
+            System.out.println(nombre +" "+apellido+ " "+dni+" termino el dia : "+fechaFormateada);
+            System.out.println("-----------------------------------------------");
+        });
+    
+    
+    
+    }
+    
+    
+    private static void pacientesQueNorpp(){
+    
+     System.out.println("Los pacientes que no llegaron al peso son : ");
+        listNorpp.forEach(d-> {
+        String dni=d.getPaciente().getDni();
+        String nombre=d.getPaciente().getNombre();
+        String apellido =d.getPaciente().getApellido();
+            System.out.println(nombre +" "+apellido+ " "+dni );
+            System.out.println("-----------------------------------------------");
+        });
+    
+    
+    
+    }
+    
+    private static void creacionDeLista(){
+        DietaData dd=new DietaData(Conexion.getConnection());
+     List<Dieta> listTodasDietas = dd.listarDietas();
+        listTodasDietas.forEach(d -> {
+            double altPac = d.getPaciente().getAltura();
+            Map<String, Object> rpp = IMC.calcIMC(altPac);
+	
+            double pesoFinal = d.getPesoActual();
+            if (!(pesoFinal >= (Double)rpp.get("pesoMinimo") && pesoFinal <= (Double)rpp.get("pesoMaximo")) ){
+                listNorpp.add(d);
+            }
+            if (d.isEstado()) {
+                listEstadoTermado.add(d);
+            } else {
+                listEstadoEnCurso.add(d);
+            }
+        });
+        
+    
+    
+    
+    }
+    
+    
+
 }
